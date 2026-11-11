@@ -1,3 +1,4 @@
+using QuizBattle.Models;
 using System.Text.Json;
 
 namespace QuizBattle.Data;
@@ -46,26 +47,4 @@ public class QuestionLoader : IJsonLoadable<Category>
     {
         public List<Category> Categories { get; set; } = [];
     }
-}
-
-public class Category
-{
-    public string? Name { get; set; }
-
-    public List<Question> Questions { get; set; } = [];
-}
-
-public class Question
-{
-    public string? Type { get; set; }
-
-    public string? Text { get; set; }
-
-    public List<string> Options { get; set; } = [];
-
-    public int? CorrectIndex { get; set; }
-
-    public bool? Correct { get; set; }
-
-    public string? Difficulty { get; set; }
 }
