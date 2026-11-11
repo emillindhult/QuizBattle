@@ -1,6 +1,5 @@
 ﻿namespace QuizBattle;
 
-// Asks the players for number of players, names and number of rounds.
 public class GameSetup
 {
     private const int MinPlayers = 2;
@@ -8,7 +7,6 @@ public class GameSetup
     private const int MinRounds = 1;
     private const int MaxRounds = 10;
 
-    // Runs the whole setup and returns the chosen settings.
     public GameSettings CreateSettings()
     {
         var settings = new GameSettings();
