@@ -1,42 +1,28 @@
+namespace QuizBattle.Models;
 
-using System;
-
-namespace QuizBattle.Models
+public sealed class TrueFalseQuestion : Question, IQuestion
 {
-    public class TrueFalseQuestion : Question
+    public bool Correct { get; set; }
+
+    public void Display()
     {
-        public bool Correct { get; set; }
+        Console.WriteLine(Text);
+        Console.WriteLine("1. True");
+        Console.WriteLine("2. False");
+    }
 
-        public TrueFalseQuestion(
-            string text,
-            string category,
-            string difficulty,
-            bool correct)
-            : base(text, category, difficulty)
+    public bool CheckAnswer(string answer)
+    {
+        if (answer == "1" || answer.ToLower() == "true")
         {
-            Correct = correct;
+            return Correct == true;
         }
 
-        public override void Display()
+        if (answer == "2" || answer.ToLower() == "false")
         {
-            Console.WriteLine(Text);
-            Console.WriteLine("1. True");
-            Console.WriteLine("2. False");
+            return Correct == false;
         }
 
-        public override bool CheckAnswer(string answer)
-        {
-            if (answer == "1" || answer.ToLower() == "true")
-            {
-                return Correct == true;
-            }
-
-            if (answer == "2" || answer.ToLower() == "false")
-            {
-                return Correct == false;
-            }
-
-            return false;
-        }
+        return false;
     }
 }

@@ -1,39 +1,32 @@
+namespace QuizBattle.Models;
 
-namespace QuizBattle.Models
+public class Question
 {
-    public abstract class Question : IQuestion
+    public QuestionType Type { get; set; }
+    public string? Text { get; set; }
+    public Difficulty Difficulty { get; set; }
+
+    public int GetPoints()
     {
-        public string Text { get; set; }
-        public string Category { get; set; }
-        public string Difficulty { get; set; }
-
-        public Question(string text, string category, string difficulty)
+        return Difficulty switch
         {
-            Text = text;
-            Category = category;
-            Difficulty = difficulty;
-        }
-
-        public int GetPoints()
-        {
-            switch (Difficulty.ToLower())
-            {
-                case "easy":
-                    return 10;
-
-                case "medium":
-                    return 20;
-
-                case "hard":
-                    return 30;
-
-                default:
-                    return 0;
-            }
-        }
-
-        public abstract void Display();
-
-        public abstract bool CheckAnswer(string answer);
+            Models.Difficulty.Easy => 10,
+            Models.Difficulty.Medium => 20,
+            Models.Difficulty.Hard => 30,
+            _ => 0,
+        };
     }
+}
+
+public enum Difficulty
+{
+    Easy,
+    Medium,
+    Hard
+}
+
+public enum QuestionType
+{
+    TrueFalse,
+    MultipleChoice
 }

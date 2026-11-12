@@ -1,44 +1,27 @@
+namespace QuizBattle.Models;
 
-using System;
-using System.Collections.Generic;
-
-namespace QuizBattle.Models
+public sealed class MultipleChoiceQuestion : Question, IQuestion
 {
-    public class MultipleChoiceQuestion : Question
+    public List<string> Options { get; set; } = [];
+    public int CorrectIndex { get; set; }
+
+    public void Display()
     {
-        public List<string> Options { get; set; }
-        public int CorrectIndex { get; set; }
+        Console.WriteLine(Text);
 
-        public MultipleChoiceQuestion(
-            string text,
-            string category,
-            string difficulty,
-            List<string> options,
-            int correctIndex)
-            : base(text, category, difficulty)
+        for (int i = 0; i < Options.Count; i++)
         {
-            Options = options;
-            CorrectIndex = correctIndex;
+            Console.WriteLine($"{i + 1}. {Options[i]}");
+        }
+    }
+
+    public bool CheckAnswer(string answer)
+    {
+        if (int.TryParse(answer, out int selectedOption))
+        {
+            return selectedOption - 1 == CorrectIndex;
         }
 
-        public override void Display()
-        {
-            Console.WriteLine(Text);
-
-            for (int i = 0; i < Options.Count; i++)
-            {
-                Console.WriteLine($"{i + 1}. {Options[i]}");
-            }
-        }
-
-        public override bool CheckAnswer(string answer)
-        {
-            if (int.TryParse(answer, out int selectedOption))
-            {
-                return selectedOption - 1 == CorrectIndex;
-            }
-
-            return false;
-        }
+        return false;
     }
 }
