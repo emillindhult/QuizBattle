@@ -1,5 +1,6 @@
 using QuizBattle.Models;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace QuizBattle.Data;
 
@@ -14,9 +15,13 @@ public class QuestionLoader : IJsonLoadable<Category>
             string jsonString = File.ReadAllText(filePath);
 
             var options = new JsonSerializerOptions
+
             {
                 PropertyNameCaseInsensitive = true
             };
+
+            options.Converters.Add(new JsonStringEnumConverter());
+            options.Converters.Add(new QuestionConverter());
 
             QuestionsDocument? document = JsonSerializer.Deserialize<QuestionsDocument>(jsonString, options);
 
