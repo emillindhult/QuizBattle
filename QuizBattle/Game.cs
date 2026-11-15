@@ -101,7 +101,7 @@ public class Game
         return true;
     }
 
-   
+
     private void RemoveEmptyCategories()
     {
         _categories.RemoveAll(category => !category.HasQuestions());
@@ -150,12 +150,12 @@ public class Game
         }
     }
 
-    private List<LeaderboardEntry> CreateLeaderboardEntries()
+    private List<HighscoreEntry> CreateLeaderboardEntries()
     {
         DateOnly today = DateOnly.FromDateTime(DateTime.Now);
 
         return _players
-            .Select(player => new LeaderboardEntry
+            .Select(player => new HighscoreEntry
             {
                 Name = player.Name,
                 Score = player.Score,
@@ -167,6 +167,6 @@ public class Game
 
     private void SaveResults()
     {
-        List<LeaderboardEntry> entries = CreateLeaderboardEntries();
+        List<HighscoreEntry> entries = CreateLeaderboardEntries();
     }
 }
