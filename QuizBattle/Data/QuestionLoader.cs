@@ -6,6 +6,11 @@ namespace QuizBattle.Data;
 
 public class QuestionLoader : IJsonLoadable<Category>
 {
+    private static readonly JsonSerializerOptions options = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     public List<Category> Load()
     {
         string filePath = GetFilePath();
@@ -13,15 +18,6 @@ public class QuestionLoader : IJsonLoadable<Category>
         try
         {
             string jsonString = File.ReadAllText(filePath);
-
-            var options = new JsonSerializerOptions
-
-            {
-                PropertyNameCaseInsensitive = true
-            };
-
-            options.Converters.Add(new JsonStringEnumConverter());
-            options.Converters.Add(new QuestionConverter());
 
             QuestionsDocument? document = JsonSerializer.Deserialize<QuestionsDocument>(jsonString, options);
 
@@ -38,6 +34,10 @@ public class QuestionLoader : IJsonLoadable<Category>
         catch (IOException ex)
         {
             Console.WriteLine($"Could not read questions.json: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Something unexpected happened: {ex.Message}");
         }
 
         return [];
