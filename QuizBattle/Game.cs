@@ -1,5 +1,6 @@
 ﻿using QuizBattle.Data;
 using QuizBattle.Models;
+using QuizBattle.Services;
 
 namespace QuizBattle;
 
@@ -7,11 +8,23 @@ public class Game
 {
     private readonly GameSettings _settings;
     private readonly CategorySelector _categorySelector = new CategorySelector();
+    private readonly QuestionAsker _questionAsker;
+    private readonly AnswerHandler _answerHandler;
+    private readonly List<Player> _players = new List<Player>();
     private List<Category> _categories = new List<Category>();
 
     public Game(GameSettings settings)
     {
         _settings = settings;
+
+        var scoreManager = new ScoreManager();
+        _questionAsker = new QuestionAsker(scoreManager);
+        _answerHandler = new AnswerHandler(scoreManager);
+
+        foreach (string name in settings.PlayerNames)
+        {
+            _players.Add(new Player(name));
+        }
     }
 
     public void Play()
@@ -37,7 +50,6 @@ public class Game
         ShowFinalResults();
     }
 
-    
     private void LoadCategories()
     {
         var loader = new QuestionLoader();
@@ -49,9 +61,9 @@ public class Game
         Console.WriteLine();
         Console.WriteLine($"=== Round {roundNumber} of {_settings.Rounds} ===");
 
-        foreach (string playerName in _settings.PlayerNames)
+        foreach (Player player in _players)
         {
-            bool turnPlayed = PlayTurn(playerName);
+            bool turnPlayed = PlayTurn(player);
 
             if (!turnPlayed)
             {
@@ -62,7 +74,7 @@ public class Game
         return true;
     }
 
-    private bool PlayTurn(string playerName)
+    private bool PlayTurn(Player player)
     {
         RemoveEmptyCategories();
 
@@ -72,9 +84,14 @@ public class Game
             return false;
         }
 
-        Category category = _categorySelector.ChooseCategory(playerName, _categories);
+        Category category = _categorySelector.ChooseCategory(player.Name, _categories);
+        Question question = DrawQuestion(category);
 
-        Console.WriteLine($"{playerName} chose {category.Name} (placeholder)");
+        if (_questionAsker.TryAsk(category.Name, question, out bool isCorrect))
+        {
+            _answerHandler.Handle(player, question, isCorrect);
+        }
+
         return true;
     }
 
@@ -83,9 +100,22 @@ public class Game
         _categories.RemoveAll(category => !category.HasQuestions());
     }
 
+    private Question DrawQuestion(Category category)
+    {
+        int index = Random.Shared.Next(category.Questions.Count);
+        Question question = category.Questions[index];
+        category.Questions.RemoveAt(index);
+        return question;
+    }
+
     private void ShowFinalResults()
     {
         Console.WriteLine();
         Console.WriteLine("=== Final results ===");
+
+        foreach (Player player in _players)
+        {
+            Console.WriteLine($"{player.Name}: {player.Score} points ({player.CorrectAnswers} correct)");
+        }
     }
 }
