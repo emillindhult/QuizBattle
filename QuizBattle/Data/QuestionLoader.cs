@@ -1,5 +1,6 @@
 using QuizBattle.Models;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace QuizBattle.Data;
 

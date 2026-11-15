@@ -10,7 +10,9 @@ public class Game
     private readonly CategorySelector _categorySelector = new CategorySelector();
     private readonly QuestionAsker _questionAsker;
     private readonly AnswerHandler _answerHandler;
+    private readonly GameResult _gameResult = new GameResult();
     private readonly List<Player> _players = new List<Player>();
+    private readonly Dictionary<Player, int> _questionsAnswered = new Dictionary<Player, int>();
     private List<Category> _categories = new List<Category>();
 
     public Game(GameSettings settings)
@@ -23,7 +25,9 @@ public class Game
 
         foreach (string name in settings.PlayerNames)
         {
-            _players.Add(new Player(name));
+            var player = new Player(name);
+            _players.Add(player);
+            _questionsAnswered[player] = 0;
         }
     }
 
@@ -80,6 +84,7 @@ public class Game
 
         if (_categories.Count == 0)
         {
+            Console.WriteLine();
             Console.WriteLine("All questions have been used. The game ends early.");
             return false;
         }
@@ -90,11 +95,13 @@ public class Game
         if (_questionAsker.TryAsk(category.Name, question, out bool isCorrect))
         {
             _answerHandler.Handle(player, question, isCorrect);
+            _questionsAnswered[player]++;
         }
 
         return true;
     }
 
+   
     private void RemoveEmptyCategories()
     {
         _categories.RemoveAll(category => !category.HasQuestions());
@@ -113,9 +120,53 @@ public class Game
         Console.WriteLine();
         Console.WriteLine("=== Final results ===");
 
-        foreach (Player player in _players)
+        List<Player> ranking = _players
+            .OrderByDescending(player => player.Score)
+            .ThenByDescending(player => player.CorrectAnswers)
+            .ToList();
+
+        for (int i = 0; i < ranking.Count; i++)
         {
-            Console.WriteLine($"{player.Name}: {player.Score} points ({player.CorrectAnswers} correct)");
+            Player player = ranking[i];
+            Console.WriteLine($"{i + 1}. {player.Name}  {player.Score} points  ({player.CorrectAnswers} of {_questionsAnswered[player]} correct)");
         }
+
+        ShowWinners();
+        SaveResults();
+    }
+
+    private void ShowWinners()
+    {
+        List<Player> winners = _gameResult.GetWinners(_players);
+
+        if (winners.Count == 1)
+        {
+            Console.WriteLine($"{winners[0].Name} wins!");
+        }
+        else if (winners.Count > 1)
+        {
+            string names = string.Join(" and ", winners.Select(winner => winner.Name));
+            Console.WriteLine($"Shared victory: {names}!");
+        }
+    }
+
+    private List<LeaderboardEntry> CreateLeaderboardEntries()
+    {
+        DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+
+        return _players
+            .Select(player => new LeaderboardEntry
+            {
+                Name = player.Name,
+                Score = player.Score,
+                CorrectAnswers = player.CorrectAnswers,
+                Date = today
+            })
+            .ToList();
+    }
+
+    private void SaveResults()
+    {
+        List<LeaderboardEntry> entries = CreateLeaderboardEntries();
     }
 }
