@@ -101,12 +101,13 @@ public class Game
         return true;
     }
 
-
+    // Categories without questions are removed from the list.
     private void RemoveEmptyCategories()
     {
         _categories.RemoveAll(category => !category.HasQuestions());
     }
 
+    // Picks a random question and removes it, so it can never be asked twice.
     private Question DrawQuestion(Category category)
     {
         int index = Random.Shared.Next(category.Questions.Count);
@@ -115,6 +116,7 @@ public class Game
         return question;
     }
 
+    // Shown after the last round: ranking, winner(s) and saving the results.
     private void ShowFinalResults()
     {
         Console.WriteLine();
@@ -150,7 +152,7 @@ public class Game
         }
     }
 
-    private List<HighscoreEntry> CreateLeaderboardEntries()
+    private List<HighscoreEntry> CreateHighscoreEntries()
     {
         DateOnly today = DateOnly.FromDateTime(DateTime.Now);
 
@@ -165,8 +167,13 @@ public class Game
             .ToList();
     }
 
+    // Saves the results to the highscore list.
     private void SaveResults()
     {
-        List<HighscoreEntry> entries = CreateLeaderboardEntries();
+        var repository = new JsonHighscoreRepository();
+        repository.Add(CreateHighscoreEntries());
+
+        Console.WriteLine();
+        Console.WriteLine("The results were saved to the highscore list.");
     }
 }

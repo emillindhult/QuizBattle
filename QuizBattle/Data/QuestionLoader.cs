@@ -6,9 +6,15 @@ namespace QuizBattle.Data;
 
 public class QuestionLoader : IJsonLoadable<Category>
 {
+    // The converters create the correct question class and read enums from text
     private static readonly JsonSerializerOptions options = new()
     {
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
+        Converters =
+        {
+            new JsonStringEnumConverter(),
+            new QuestionConverter()
+        }
     };
 
     public List<Category> Load()

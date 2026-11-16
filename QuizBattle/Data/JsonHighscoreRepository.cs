@@ -1,4 +1,3 @@
-using System;
 using QuizBattle.Models;
 using System.Text.Json;
 
@@ -6,7 +5,7 @@ namespace QuizBattle.Data;
 
 internal sealed class JsonHighscoreRepository : IRepository<HighscoreEntry>, IJsonLoadable<HighscoreEntry>
 {
-    private readonly string _path = Path.Combine(AppContext.BaseDirectory, "Data", "highscore.json");
+    private readonly string _path = Path.Combine(AppContext.BaseDirectory, "Data", "highscores.json");
     private static readonly JsonSerializerOptions _options = new()
     {
         WriteIndented = true,
@@ -15,36 +14,14 @@ internal sealed class JsonHighscoreRepository : IRepository<HighscoreEntry>, IJs
 
     public void Add(List<HighscoreEntry> values)
     {
-        List<HighscoreEntry> tempHighscore = Load();
-        tempHighscore.AddRange(values);
-
-        var jsonString = JsonSerializer.Serialize(tempHighscore, _options);
-
-        try
-        {
-            File.WriteAllText(_path, jsonString);
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            Console.Error.WriteLine($"Could not save highscores: {ex.Message}");
-        }
+        List<HighscoreEntry> highscores = Load();
+        highscores.AddRange(values);
+        Save(highscores);
     }
 
     public void Add(HighscoreEntry value)
     {
-        List<HighscoreEntry> tempHighscore = Load();
-        tempHighscore.Add(value);
-
-        var jsonString = JsonSerializer.Serialize(tempHighscore, _options);
-
-        try
-        {
-            File.WriteAllText(_path, jsonString);
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            Console.Error.WriteLine($"Could not save highscores: {ex.Message}");
-        }
+        Add(new List<HighscoreEntry> { value });
     }
 
     public List<HighscoreEntry> Load()
@@ -53,7 +30,7 @@ internal sealed class JsonHighscoreRepository : IRepository<HighscoreEntry>, IJs
         {
             if (!File.Exists(_path))
             {
-                File.Create(_path);
+                return [];
             }
 
             string jsonString = File.ReadAllText(_path);
@@ -63,21 +40,17 @@ internal sealed class JsonHighscoreRepository : IRepository<HighscoreEntry>, IJs
                 return [];
             }
 
-            List<HighscoreEntry>? highscore = JsonSerializer.Deserialize<List<HighscoreEntry>>(jsonString);
+            List<HighscoreEntry>? highscores = JsonSerializer.Deserialize<List<HighscoreEntry>>(jsonString, _options);
 
-            return highscore ?? [];
+            return highscores ?? [];
         }
         catch (JsonException ex)
         {
-            Console.Error.WriteLine($"Could not parse highscore.json: {ex.Message}");
+            Console.Error.WriteLine($"Could not parse highscores.json: {ex.Message}");
         }
         catch (IOException ex)
         {
-            Console.Error.WriteLine($"Could not read highscore.json: {ex.Message}");
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"Something unexpected happened: {ex.Message}");
+            Console.Error.WriteLine($"Could not read highscores.json: {ex.Message}");
         }
 
         return [];
@@ -85,40 +58,25 @@ internal sealed class JsonHighscoreRepository : IRepository<HighscoreEntry>, IJs
 
     public List<HighscoreEntry> GetTopTen()
     {
-        string jsonString = File.ReadAllText(_path);
+        return Load()
+            .OrderByDescending(entry => entry.Score)
+            .ThenByDescending(entry => entry.CorrectAnswers)
+            .Take(10)
+            .ToList();
+    }
 
-        if (string.IsNullOrWhiteSpace(jsonString))
-        {
-            return [];
-        }
-
+    private void Save(List<HighscoreEntry> highscores)
+    {
         try
         {
-            List<HighscoreEntry>? highscore = JsonSerializer.Deserialize<List<HighscoreEntry>>(jsonString);
+            Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
 
-            if (highscore == null)
-            {
-                return [];
-            }
-
-            highscore.Sort();
-            highscore.Reverse();
-
-            return highscore.GetRange(0, 10);
+            string jsonString = JsonSerializer.Serialize(highscores, _options);
+            File.WriteAllText(_path, jsonString);
         }
-        catch (JsonException ex)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            Console.Error.WriteLine($"Could not parse highscore.json: {ex.Message}");
+            Console.Error.WriteLine($"Could not save highscores: {ex.Message}");
         }
-        catch (IOException ex)
-        {
-            Console.Error.WriteLine($"Could not read highscore.json: {ex.Message}");
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"Something unexpected happened: {ex.Message}");
-        }
-
-        return [];
     }
 }

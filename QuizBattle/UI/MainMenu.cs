@@ -1,9 +1,9 @@
-﻿namespace QuizBattle;
+﻿using QuizBattle.Data;
 
+namespace QuizBattle;
 
 public class MainMenu
 {
-    
     public void Run()
     {
         bool running = true;
@@ -19,8 +19,7 @@ public class MainMenu
                     StartGame();
                     break;
                 case 2:
-                    
-                    Console.WriteLine("Showing the highscore list...");
+                    new Leaderboard().Show();
                     break;
                 case 3:
                     Console.WriteLine("Goodbye!");
@@ -32,14 +31,12 @@ public class MainMenu
         }
     }
 
-    
     private void ShowMenu()
     {
         Console.WriteLine("=== Quiz Battle ===");
         Console.WriteLine("1. Play  2. Highscores  3. Exit");
     }
 
-    
     private void StartGame()
     {
         var setup = new GameSetup();
